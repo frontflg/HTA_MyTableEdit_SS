@@ -5,9 +5,9 @@
   <meta http-equiv="content-script-type" content="text/javascript">
   <meta http-equiv="content-style-type" content="text/css">
   <meta http-equiv="X-UA-Compatible" content="IE=Edge">
-  <title>MySQLテーブル編集</title>
+  <title>SQL Server テーブル編集</title>
   <hta:application id="myapp" 
-    applicationname="MyTableEdit_SS" 
+    applicationname="SQL Server Edit" 
     border="thick"
     caption="yes"
     navigate="yes"
@@ -79,7 +79,12 @@
     </div>
   </div>
   <div id="tab02">
-    <div id="tName2"></div>
+    <table><tr>
+      <td id="tName2"></td>
+      <td>　件数：<input type="tel" id="maxRow" value="15" size=4" maxlength="4"></td>
+      <td>　条件：<input type="text" id="whereRow" value="" size=100" maxlength="120"></td>
+      <td id="reCol"></td>
+    </tr></table>
     <div id="fixedTableArea2">
       <div id="topLeftArea2">
         <table id="topLeftTable2" class="fixedTable">

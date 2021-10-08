@@ -1,6 +1,8 @@
 var tName = '';         // 選択中テーブル
 var strWhere = '';      // 検索・更新条件文
 var aKey = new Array(); // KEY項目フラグ配列
+var maxRow = '';        // テーブル項目詳細画面検索最大数
+const conStr = 'Provider=MSDASQL; DSN=LOCAL_SQLServer;Test'; //DSN=ODBCデータソース名;データベース名
 // テーブル一覧画面
 function setList() {
   var cn = new ActiveXObject('ADODB.Connection');
@@ -8,7 +10,8 @@ function setList() {
   var mySql = "SELECT t.name,CAST(ep.value AS NVARCHAR(50)),i.rows,FORMAT(t.create_date,'yyyy/MM/dd HH:mm:ss')";
       mySql += " FROM sys.tables AS t,sys.extended_properties AS ep,sys.sysindexes AS i";
       mySql += " WHERE t.object_id = ep.major_id AND ep.minor_id = 0 AND t.object_id = i.id AND i.indid < 2";
-  cn.Open('Provider=MSDASQL; DSN=LOCAL_SQLServer;Test');
+  // 
+  cn.Open(conStr);
   try {
     rs.Open(mySql, cn);
   } catch (e) {
@@ -45,8 +48,15 @@ function setList() {
 }
 // テーブル項目詳細画面
 function colPage(tName) {
+  maxRow = $('#maxRow').val();
+  if ( isNaN(maxRow) ) { 
+     alert('件数は数字を入力してください！');
+     maxRow = ""
+  }
+  var whereRow = $('#whereRow').val();
   var cn = new ActiveXObject('ADODB.Connection');
   var rs = new ActiveXObject('ADODB.Recordset');
+  // テーブル項目情報の検索
   var mySql = "SELECT CAST(ep.value AS NVARCHAR(50)),c.name,type_name(user_type_id),max_length,k.unique_index_id"
              + " FROM sys.objects AS t"
              + " INNER JOIN sys.columns AS c ON t.object_id = c.object_id"
@@ -55,7 +65,7 @@ function colPage(tName) {
              + " LEFT JOIN sys.key_constraints AS k"
              + " ON t.object_id = k.parent_object_id AND c.column_id = k.unique_index_id"
              + " WHERE t.type = 'U' AND t.name='" + tName + "' ORDER BY c.column_id";
-  cn.Open('Provider=MSDASQL; DSN=LOCAL_SQLServer;Test');
+  cn.Open(conStr);
   try {
     rs.Open(mySql, cn);
   } catch (e) {
@@ -144,10 +154,18 @@ function colPage(tName) {
   cn.Close();
   rs = null;
   cn = null;
+  // テーブルレコードの検索
   var cn = new ActiveXObject('ADODB.Connection');
   var rs = new ActiveXObject('ADODB.Recordset');
-  mySql = "SELECT * FROM " + tName;
-  cn.Open('Provider=MSDASQL; DSN=LOCAL_SQLServer;Test');
+  if (!maxRow) {
+    mySql = "SELECT * FROM " + tName;
+  } else {
+    mySql = "SELECT TOP " + String(maxRow) + " * FROM " + tName;
+  }
+  if (whereRow) {
+    mySql += " WHERE " + whereRow;
+  }
+  cn.Open(conStr);
   strDocL = '';
   strDocR = '';
   try {
@@ -204,6 +222,7 @@ function colPage(tName) {
   }
   $('#tName2').replaceWith('<div id="tName2">' + tName + '</div>');
   $('#tName3').replaceWith('<div id="tName3">' + tName + '</div>');
+  $('#reCol').replaceWith('<input type="button" style="height:27px;" value="再検索" onClick="colPage(\'' + tName + '\')">');
   $('#lst02L').replaceWith('<tbody id="lst02L">' + strDocL + '</tbody>');
   $('#lst02R').replaceWith('<tbody id="lst02R">' + strDocR + '</tbody>');
   rs.Close();
@@ -219,8 +238,9 @@ function updPage(updWhere) {
   strWhere = updWhere;
   var cn = new ActiveXObject('ADODB.Connection');
   var rs = new ActiveXObject('ADODB.Recordset');
+  // 代替文字　★：イコール、※：￥マーク(文字)
   var mySql = "SELECT * FROM " + updWhere.replace(/★/g, ' = ').replace(/※/g, '\'');
-  cn.Open('Provider=MSDASQL; DSN=LOCAL_SQLServer;Test');
+  cn.Open(conStr);
   try {
     rs.Open(mySql, cn);
   } catch (e) {
@@ -330,7 +350,7 @@ function insPage(tblName) {
   var cn = new ActiveXObject('ADODB.Connection');
   var rs = new ActiveXObject('ADODB.Recordset');
   var mySql = "SELECT TOP 1 * FROM " + tName;
-  cn.Open('Provider=MSDASQL; DSN=LOCAL_SQLServer;Test');
+  cn.Open(conStr);
   try {
     rs.Open(mySql, cn);
   } catch (e) {
@@ -463,7 +483,7 @@ function updRec() {
 //  return;
   var cn = new ActiveXObject('ADODB.Connection');
   var rs = new ActiveXObject('ADODB.Recordset');
-  cn.Open('Provider=MSDASQL; DSN=LOCAL_SQLServer;Test');
+  cn.Open(conStr);
   try {
     var rs = cn.Execute(mySql);
     alert('対象レコード更新完了');
@@ -478,6 +498,7 @@ function updRec() {
   $('#li03').css('visibility','hidden');
   colPage(tName);
 }
+// 登録処理
 function insRec() {
   var mySql  = "";
   var mySql2 = "";
@@ -546,7 +567,7 @@ function insRec() {
 //  return;
   var cn = new ActiveXObject('ADODB.Connection');
   var rs = new ActiveXObject('ADODB.Recordset');
-  cn.Open('Provider=MSDASQL; DSN=LOCAL_SQLServer;Test');
+  cn.Open(conStr);
   try {
     var rs   = cn.Execute(mySql);
     alert('対象レコード登録完了');
@@ -565,6 +586,7 @@ function insRec() {
   $('#li03').css('visibility','hidden');
   colPage(tName);
 }
+// 削除処理
 function delRec() {
   var mySql = "DELETE FROM " + strWhere.replace(/★/g, ' = ').replace(/※/g, '\'');
 //  alert('削除SQL: ' + mySql);
@@ -576,7 +598,7 @@ function delRec() {
   }
   var cn = new ActiveXObject('ADODB.Connection');
   var rs = new ActiveXObject('ADODB.Recordset');
-  cn.Open('Provider=MSDASQL; DSN=LOCAL_SQLServer;Test');
+  cn.Open(conStr);
   try {
     var rs = cn.Execute(mySql);
     alert('対象レコード削除完了');
