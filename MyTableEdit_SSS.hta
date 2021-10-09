@@ -1,0 +1,155 @@
+<!DOCTYPE HTML>
+<html lang="ja">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta http-equiv="content-script-type" content="text/javascript">
+  <meta http-equiv="content-style-type" content="text/css">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <title>SQL Server テーブル編集</title>
+  <hta:application id="myapp" 
+    applicationname="SQL Server Edit" 
+    border="thick"
+    caption="yes"
+    navigate="yes"
+    showintaskbar="yes"
+    singleinstance="yes"
+    sysmenu="yes"
+    windowstate="normal">
+  <script src="MyTableEdit_SSS.js" type="text/javascript"></script>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" />
+  <script type="text/javascript">
+    window.moveTo(20,20)
+    window.resizeTo(1330, 740)
+  </script>
+  <style type="text/css">
+    * { margin: 10; padding: 10; }
+    body {  font-size: 15px; }
+    #fixedTableArea { width: 748px; height: 615px; }
+    #topArea { width: 748px; float: left; overflow: hidden; }
+    #bottomArea { width: 748px; height: 590px; overflow-y: scroll; }
+    #fixedTableArea2 { width: 1260px; height: 595px; }
+    #topLeftArea2 { float: left; width: 55px; }
+    #topRightArea2 { width: 1205px; float: left; overflow: hidden; }
+    #bottomLeftArea2 { float: left;  width: 55px; height: 492px; overflow: hidden; }
+    #bottomRightArea2 { width: 1205px; height: 510px; overflow: scroll; }
+    #fixedTableArea3 { width: 1260px; height: 555px; }
+    #topArea3 { width: 1260px; float: left; overflow: hidden; }
+    #bottomArea3 { width: 1260px; height: 515px; overflow-y: scroll; }
+    .fixedTable { border-collapse: collapse; table-layout: fixed; width: 100%; }
+    .fixedTable td { border: 1px solid #888; overflow: hidden; height: 30px; white-space: nowrap; }
+    .fixedTable td.dummyColumn { width: 17px; border: 0px; }
+    .fixedTable td.dummyRow { height: 18px; border: 0px; }
+    .fixedTable tr:nth-child(even) {background: #eee;}
+    .fixedTable tr:hover {background: #ff0;}
+    .fixedTable th:first-child {
+  </style>
+</head>
+<body class="base">
+  <div id="tabs">
+    <ul>
+      <li><a href="#tab01">一覧</a>
+      <li id="li02"><a href="#tab02">詳細</a>
+      <li id="li03"><a href="#tab03">編集</a>
+   </ul>
+  <div id="tab01">
+    <div id="fixedTableArea">
+      <div id="topArea">
+        <table id="topTable" class="fixedTable">
+          <tbody style="color:white;">
+            <tr class="bg-primary">
+              <td width="150">TABLE NAME</td>
+              <td width="300">TABLE COMMENT</td>
+              <td width="80">COUNT</td>
+              <td width="200">CREATE</td>
+              <td class="dummyColumn"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="bottomArea">
+        <table id="bottomTable" class="fixedTable">
+          <tbody id="lst01">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div id="tab02">
+    <table><tr>
+      <td id="tName2"></td>
+      <td>　件数：<input type="tel" id="maxRow" value="15" size=4" maxlength="4"></td>
+      <td>　条件：<input type="text" id="whereRow" value="" size=100" maxlength="120"></td>
+      <td id="reCol"></td>
+    </tr></table>
+    <div id="fixedTableArea2">
+      <div id="topLeftArea2">
+        <table id="topLeftTable2" class="fixedTable">
+          <tbody id="hdr02L">
+          </tbody>
+        </table>
+      </div>
+      <div id="topRightArea2">
+        <table id="topRightTable2" class="fixedTable">
+          <tbody id="hdr02R">
+          </tbody>
+        </table>
+      </div>
+      <div id="bottomLeftArea2">
+        <table id="bottomLeftTable2" class="fixedTable">
+          <tbody id="lst02L">
+          </tbody>
+        </table>
+      </div>
+      <div id="bottomRightArea2">
+        <table id="bottomRightTable2" class="fixedTable">
+          <tbody id="lst02R">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div id="tab03">
+    <div id="tName3"></div>
+    <div id="fixedTableArea3" style="margin-top : 5px">
+      <div id="topArea3">
+        <table id="topTable3" class="fixedTable">
+          <tbody style="color:white;">
+            <tr class="bg-primary">
+              <td width="150">NAME</td>
+              <td width="60">TYPE</td>
+              <td width="50">SIZE</td>
+              <td>VALUE</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="bottomArea3">
+        <table id="bottomTable3" class="fixedTable">
+          <tbody id="lst03">
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <button id="insert" onClick="insRec()" value="insert" class="btn btn-info" />登録</button>
+    <button id="update" onClick="updRec()" value="update" class="btn btn-success" />変更</button>
+    <button id="delete" onClick="delRec()" value="delete" class="btn btn-danger" formaction="delete" />削除</button>
+  </div>
+  <script>
+    setList();
+  </script>
+  <script>
+    $('#bottomArea').scroll(function(e) {
+      $('#topArea').scrollLeft($(this).scrollLeft());
+    });
+    $('#bottomRightArea2').scroll(function(e) {
+      $('#bottomLeftArea2').scrollTop($(this).scrollTop()); 
+      $('#topRightArea2').scrollLeft($(this).scrollLeft());
+    });
+  </script>
+</div>
+</body>
+</html>
