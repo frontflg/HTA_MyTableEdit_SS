@@ -34,6 +34,7 @@ function setList() {
     if (rs(2).value > 0) {
       strDoc += '<tr><td style="width:150px;"><a href="#" onClick=colPage("' + rs(0).value + '")>' + rs(0).value + '</a></td>';
     } else {
+   // strDoc += '<tr><td style="width:150px;"><a href="#" onClick=insPage("' + rs(0).value + '")>' + rs(0).value + '</a></td>';
       strDoc += '<tr><td style="width:150px;">' + rs(0).value + '</td>';
     }
     strDoc += '<td width="300">' + rs(1).value + '</td>';
@@ -582,7 +583,7 @@ function insRec() {
     alert('対象レコード登録完了');
   } catch (e) {
     cn.Close();
-    if ((e.number & 0xFFFF) == '1062') {
+    if ((e.number & 0xFFFF) == '1505') {
       alert('対象レコードは、既に登録されています。');
     } else {
       alert('対象レコード登録失敗 ' + (e.number & 0xFFFF) + ' ' + e.message + ' ' + mySql);
