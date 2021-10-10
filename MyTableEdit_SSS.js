@@ -4,6 +4,7 @@ var aKey = new Array(); // KEY項目フラグ配列
 var maxRow = '';        // テーブル項目詳細画面検索最大数
 var schemaId = 'dbo';   // スキーマ名
 const conStr = 'Provider=MSDASQL; DSN=LOCAL_SQLServer;Test'; //DSN=ODBCデータソース名;データベース名
+// const conStr = 'Provider=SQLOLEDB; Data Source="LOCAL_SQLServer"; Initial Catalog="Test"; Integrated Security="SSPI";'; //サーバー名;DB名;認証
 // テーブル一覧画面
 function setList() {
   var cn = new ActiveXObject('ADODB.Connection');
@@ -34,8 +35,8 @@ function setList() {
     if (rs(2).value > 0) {
       strDoc += '<tr><td style="width:150px;"><a href="#" onClick=colPage("' + rs(0).value + '")>' + rs(0).value + '</a></td>';
     } else {
-   // strDoc += '<tr><td style="width:150px;"><a href="#" onClick=insPage("' + rs(0).value + '")>' + rs(0).value + '</a></td>';
-      strDoc += '<tr><td style="width:150px;">' + rs(0).value + '</td>';
+      strDoc += '<tr><td style="width:150px;"><a href="#" onClick=insPage("' + rs(0).value + '")>' + rs(0).value + '</a></td>';
+   // strDoc += '<tr><td style="width:150px;">' + rs(0).value + '</td>';
     }
     strDoc += '<td width="300">' + rs(1).value + '</td>';
     strDoc += '<td width="80" align="RIGHT">' + rs(2).value + '</td>';
@@ -357,9 +358,15 @@ function updPage(updWhere) {
 // レコード新規画面
 function insPage(tblName) {
   tName = tblName;
+  $('#tName2').replaceWith('<div id="tName2">' + tName + '</div>');
+  $('#tName3').replaceWith('<div id="tName3">' + tName + '</div>');
   var cn = new ActiveXObject('ADODB.Connection');
   var rs = new ActiveXObject('ADODB.Recordset');
-  var mySql = "SELECT TOP 1 * FROM " + schemaId + "." + tName;
+// var mySql = "SELECT TOP 1 * FROM " + schemaId + "." + tName;
+  var mySql = "SELECT c.column_id,c.name,type_name(c.user_type_id),c.max_length"
+            + " FROM sys.objects AS t"
+            + " INNER JOIN sys.columns AS c ON t.object_id = c.object_id"
+            + " WHERE t.type = 'U' AND t.name='" + tName + "' ORDER BY c.column_id";
   cn.Open(conStr);
   try {
     rs.Open(mySql, cn);
@@ -370,48 +377,44 @@ function insPage(tblName) {
     return;
   }
   var strDoc = '';
-  if (!rs.EOF){
-    for ( var i = 0; i < rs.Fields.Count; i++ ) {
-      strDoc += '<tr>';
-      if ( aKey[i] == 1 ) {
-        strDoc += '<td width="150"><font color="red">' + rs(i).Name + '</font></td><td width="60">';
-      } else {
-        strDoc += '<td width="150">' + rs(i).Name + '</td><td width="60">';
-      }
-      if (rs(i).Type == 202) { strDoc += 'varchar';
-      } else if (rs(i).Type == 129) { strDoc += 'char';
-      } else if (rs(i).Type == 131) { strDoc += 'numeric';
-      } else if (rs(i).Type == 133) { strDoc += 'date';
-      } else if (rs(i).Type == 134) { strDoc += 'time';
-      } else if (rs(i).Type == 135) { strDoc += 'datetime';
-      } else if (rs(i).Type == 200) { strDoc += 'varchar';
-      } else if (rs(i).Type == 203) { strDoc += 'nvarchar(max)';
-      } else if (rs(i).Type ==  16) { strDoc += 'tinyint';
-      } else if (rs(i).Type ==   3) { strDoc += 'int';
-      } else { strDoc += rs(i).Type; }
-      strDoc += '</td><td width="50">' + rs(i).DefinedSize + '';
-      if (rs(i).Type == 133) {
-        strDoc += '<td><input type="date" id="' + rs(i).Name + '"></td>';
-      } else if (rs(i).Type == 134) {
-        strDoc += '<td><input type="time" id="' + rs(i).Name + '"></td>';
-      } else if (rs(i).Type == 135) {
-        strDoc += '<td><input type="datetime" id="' + rs(i).Name + '"></td>';
-      } else if (rs(i).Type == 203) {
-      // strDoc += '<td><textarea rows="4" cols="144" id="' + rs(i).Name + '"></textarea></td>';
-      // ↓ textarea を拾うようにはできていないので、INPUTで255文字までとする。
-        strDoc += '<td><input type="text"   id="' + rs(i).Name
-                + '" size=144" maxlength=255"></td>';
-      } else if (rs(i).Type == 3 || rs(i).Type == 16) {
-        strDoc += '<td><input type="number"   id="' + rs(i).Name
-                + '" size="' + Math.round(rs(i).DefinedSize * 1.3)
-                + '" maxlength="' + rs(i).DefinedSize + '"></td>';
-      } else {
-        strDoc += '<td><input type="text" id="' + rs(i).Name
-                + '" size="' + Math.round(rs(i).DefinedSize * 1.3)
-                + '" maxlength="' + rs(i).DefinedSize + '"></td>';
-      }
-      strDoc += '</tr>';
+  var rCnt  = 0;
+  var rName = '';
+  var rTYpe = '';
+  var rSize = 0;
+  while (!rs.EOF){
+    rCnt  = rs(0).Value;
+    rName = rs(1).Value;
+    rType = rs(2).Value;
+    rSize = rs(3).Value;
+    strDoc += '<tr>';
+    if ( aKey[rCnt] == 1 ) {
+      strDoc += '<td width="150"><font color="red">' + rName + '</font></td><td width="60">';
+    } else {
+      strDoc += '<td width="150">' + rName + '</td><td width="60">';
     }
+    strDoc += rType + '</td><td width="50">';
+    if (rType == 'date') {
+      strDoc += '<td><input type="date" id="' + rName + '"></td>';
+    } else if (rType == 'datetime' || rType == 'datetimeoffset') {
+      strDoc += '<td><input type="datetime" id="' + rName + '"></td>';
+    } else if (rType == 'int' || rType == 'smallint' || rType == 'bigint' ||
+               rType == 'tinyint' || rType == 'numeric' || rType == 'float') {
+      strDoc += '<td><input type="number" id="' + rName
+             + '" size="' + (rSize * 1.3) + '" maxlength="' + rSize + '"></td>';
+    } else {
+      if (rSize < 0) {
+        strDoc += 'max<td><input type="text" id="' + rName;
+        strDoc += '" size=144" maxlength=255"></td>';
+      } else if (rSize < 144 ) {
+        strDoc += rSize + '<td><input type="text" id="' + rName;
+        strDoc += '" size="' + (rSize * 1.3) + '" maxlength="' + rSize + '"></td>';
+      } else {
+        strDoc += rSize + '<td><input type="text" id="' + rName;
+        strDoc += '" size=144" maxlength=255"></td>';
+      }
+    }
+    strDoc += '</tr>';
+    rs.MoveNext();
   }
   $('#lst03').replaceWith('<tbody id="lst03">' + strDoc + '</tbody>');
   rs.Close();
@@ -583,7 +586,7 @@ function insRec() {
     alert('対象レコード登録完了');
   } catch (e) {
     cn.Close();
-    if ((e.number & 0xFFFF) == '1505') {
+    if ((e.number & 0xFFFF) == '1062') {
       alert('対象レコードは、既に登録されています。');
     } else {
       alert('対象レコード登録失敗 ' + (e.number & 0xFFFF) + ' ' + e.message + ' ' + mySql);
