@@ -30,7 +30,12 @@ function setList() {
   }
   var strDoc = '';
   while (!rs.EOF){
-    strDoc += '<tr><td style="width:150px;"><a href="#" onClick=colPage("' + rs(0).value + '")>' + rs(0).value + '</a></td>';
+    if (rs(2).value > 0) {
+      strDoc += '<tr><td style="width:150px;"><a href="#" onClick=colPage("' + rs(0).value + '")>' + rs(0).value + '</a></td>';
+    } else {
+   // strDoc += '<tr><td style="width:150px;"><a href="#" onClick=insPage("' + rs(0).value + '")>' + rs(0).value + '</a></td>';
+      strDoc += '<tr><td style="width:150px;">' + rs(0).value + '</td>';
+    }
     strDoc += '<td width="300">' + rs(1).value + '</td>';
     strDoc += '<td width="80" align="RIGHT">' + rs(2).value + '</td>';
     strDoc += '<td width="200">' + rs(3).value + '</td></tr>';
@@ -54,9 +59,9 @@ function colPage(tName) {
      maxRow = ""
   }
   var whereRow = $('#whereRow').val();
+  // テーブル項目情報の検索
   var cn = new ActiveXObject('ADODB.Connection');
   var rs = new ActiveXObject('ADODB.Recordset');
-  // テーブル項目情報の検索
   var mySql = "SELECT CAST(ep.value AS NVARCHAR(50)),c.name,type_name(user_type_id),max_length,k.unique_index_id"
              + " FROM sys.objects AS t"
              + " INNER JOIN sys.columns AS c ON t.object_id = c.object_id"
@@ -429,7 +434,7 @@ function formatDate(date, format) {
 function updRec() {
   var mySql = "";
   var errFlg = 0;
-  tName = strWhere.slice(0,strWhere.indexOf(" WHERE"));
+  tName = $('#tName3').text();
   $('#lst03 input').each(function() {         // ゆくゆくはtextareaも拾いたい
     if (mySql == "") { 
       mySql += "UPDATE " + tName + " SET ";
@@ -573,7 +578,7 @@ function insRec() {
     alert('対象レコード登録完了');
   } catch (e) {
     cn.Close();
-    if ((e.number & 0xFFFF) == '1062') {
+    if ((e.number & 0xFFFF) == '1505') {
       alert('対象レコードは、既に登録されています。');
     } else {
       alert('対象レコード登録失敗 ' + (e.number & 0xFFFF) + ' ' + e.message + ' ' + mySql);
