@@ -62,13 +62,13 @@ function colPage(tName) {
   // テーブル項目情報の検索
   var cn = new ActiveXObject('ADODB.Connection');
   var rs = new ActiveXObject('ADODB.Recordset');
-  var mySql = "SELECT CAST(ep.value AS NVARCHAR(50)),c.name,type_name(user_type_id),max_length,k.unique_index_id"
+  var mySql = "SELECT CAST(ep.value AS NVARCHAR(50)),c.name,type_name(user_type_id),max_length,i.index_column_id"
              + " FROM sys.objects AS t"
              + " INNER JOIN sys.columns AS c ON t.object_id = c.object_id"
              + " LEFT JOIN sys.extended_properties AS ep ON t.object_id = ep.major_id"
              + " AND c.column_id = ep.minor_id AND ep.name = 'MS_Description'"
-             + " LEFT JOIN sys.key_constraints AS k"
-             + " ON t.object_id = k.parent_object_id AND c.column_id = k.unique_index_id"
+             + " LEFT JOIN sys.index_columns AS i"
+             + " ON t.object_id = i.object_id AND c.column_id = i.index_column_id"
              + " WHERE t.type = 'U' AND t.name='" + tName + "' ORDER BY c.column_id";
   cn.Open(conStr);
   try {
