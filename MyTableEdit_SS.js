@@ -2,7 +2,8 @@ var tName = '';         // 選択中テーブル
 var strWhere = '';      // 検索・更新条件文
 var aKey = new Array(); // KEY項目フラグ配列
 var maxRow = '';        // テーブル項目詳細画面検索最大数
-const conStr = 'Provider=MSDASQL; DSN=LOCAL_SQLServer;Test'; //DSN=ODBCデータソース名;データベース名
+// const conStr = 'Provider=MSDASQL; DSN=LOCAL_SQLServer;Test'; //ODBC 接続 DSN=ODBCデータソース名;データベース名
+const conStr = 'Provider=MSOLEDBSQL; Server=(local); Database=Test; Integrated Security=SSPI;'; //OLE DB Driver for SQL Server
 // テーブル一覧画面
 function setList() {
   var cn = new ActiveXObject('ADODB.Connection');
